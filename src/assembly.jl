@@ -1,19 +1,39 @@
-struct ModelElement
-    p::EarthPrimitive
+struct ModelAssembly
+    background::BackgroundModelElement
+    foreground::Array{ModelElement,1}
+end
+
+#+(a::ModelAssembly, b::ModelAssembly) = ModelAssembly(b.background, vcat(a.foreground, b.forground))
+
+#material parameter lookup always based on absolute coordinates, but object geometry may be based on transformed coordinates...
+
+abstract type ModelElement end
+
+struct TransformedModelElement <: ModelElement
+    g::EarthGeometry
     a::Transformation
     ai::Transformation
     pm::PropertyModel
-    ModelElement(p, a, pm) = new(p, a, inv(a), pm)
+    TransformedModelElement(g, a, pm) = g.transformable = true ? new(g, a, inv(a), pm) : error("Supplied a non-transformable geometry to TransformedModelElement")
 end
 
-struct ModelAssembly
-    mel::Array{ModelElement,1}
+struct StaticModelElement <: ModelElement
+    g::EarthGeometry
+    pm::PropertyModel
+end
+
+struct BackgroundModelElement <: ModelElement
+    pm::PropertyModel
 end
 
 
-function inelement(me::ModelElement, xv)
-    xvp = me.ai(xv)
-    inprimitive(me.p, xvp)
+function inelement(me::TransformedModelElement, xv)
+    xvt = me.ai(xv)
+    ingeometry(me.g, xvt)
+end
+
+function inelement(me::StaticModelElement, xv)
+    ingeometry(me.g, xv)
 end
 
 function getα(me::ModelElement, xv)
@@ -29,32 +49,32 @@ function getρ(me::ModelElement, xv)
 end
 
 function getα(m::ModelAssembly, xv)
-    for me in m.mel
+    for me in m.foreground
         if inelement(me, xv)
             return getα(me, xv)
             break
         end
     end
-    error("getα called for coordinates outside of model")
+    return getα(m.background, xv)
 end
 
 function getβ(m::ModelAssembly, xv)
-    for me in m.mel
+    for me in m.foreground
         if inelement(me, xv)
             return getβ(me, xv)
             break
         end
     end
-    error("getβ called for coordinates outside of model")
+    return getβ(m.background, xv)
 end
 
 function getρ(m::ModelAssembly, xv)
-    for me in m.mel
+    for me in m.foreground
         if inelement(me, xv)
             return getρ(me, xv)
             break
         end
     end
-    error("getρ called for coordinates outside of model")
+    return getρ(m.background, xv)
 end
 
