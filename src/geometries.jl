@@ -123,7 +123,7 @@ struct Signed2DVerticalPlane <: SignedPlane
         """
         @assert length(point) == 2 "This function only supports 2D planes"
         @assert 0 <= strike <= 360 "Strike must be between 0 & 360 degrees"
-        new(false, point, [cos(deg2rad(strike), -sin(deg2rad(strike)))], strike)
+        new(false, point, [cos(deg2rad(strike)), -sin(deg2rad(strike))], strike)
     end
 end
 
@@ -141,7 +141,7 @@ struct Signed2DDippingPlane <: SignedPlane
         """
         @assert length(point) == 2 "This function only supports 2D planes"
         @assert 0 <= dip <= 180 "Dip must be between 0 & 180 degrees for the 2D dipping plane"
-        new(false, point, [-sin(deg2rad(dip)), cos(deg2rad(dip))], dip)
+        new(false, point, [sin(deg2rad(dip)), -cos(deg2rad(dip))], dip)
     end
 end
 
