@@ -11,7 +11,7 @@ end
 function getα(m::ModelAssembly, xv)
     for md in m.deformations
         if inelement(md, xv)
-            xv = md.ai(xv)
+            xv = md.di(xv)
         end
     end
     for me in m.foreground
@@ -26,7 +26,7 @@ end
 function getβ(m::ModelAssembly, xv)
     for md in m.deformations
         if inelement(md, xv)
-            xv = md.ai(xv)
+            xv = md.di(xv)
         end
     end
     for me in m.foreground
@@ -41,7 +41,7 @@ end
 function getρ(m::ModelAssembly, xv)
     for md in m.deformations
         if inelement(md, xv)
-            xv = md.ai(xv)
+            xv = md.di(xv)
         end
     end
     for me in m.foreground

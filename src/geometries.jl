@@ -92,49 +92,84 @@ end
 #Signed Planes (Useful for Faults) + helper functions
 
 ###############################################################################
+abstract type SignedPlane <: EarthGeometry end
 
-struct SignedPlane
+struct SignedPlane3D <: SignedPlane
     transformable::Bool
     point::Array{Float64,1}
     #Normal points into the "true" side of plane
     normal::Array{Float64,1}
-    SignedPlane(point, normal) = length(point) == length(normal) ? new(false, point, normal) : error("Point and Normal must have same number of dimensions")
+    SignedPlane3D(point, normal) = (length(point) == length(normal) == 3) ? new(false, point, normal) : error("Point and Normal must both have dimension 3")
 end
 
-function SignedPlane(point::Array{Float64,1}, strike::Float64, dip::Float64)
+function SignedPlane3D(point::Array{Float64,1}, strike::Float64, dip::Float64)
     @assert length(point) == 3 "Only supply Strike and Dip to 3D planes"
     @assert 0 <= strike <= 360 "Strike must be between 0 & 360 degrees"
-    @assert 0 <= dip <= 90 "Dip must be between 0 & 90 degrees"
+    @assert 0 <= dip <= 90 "Dip must be between 0 & 90 degrees for the 3D plane"
 
 end
 
-
-function Signed2DVerticalPlane(point::Array{Float64,1}, strike::Float64)
-    """
-    This normal points 90 to the right of the given strike; ie if this plane were the San Andreas, 
-    and we gave the strike as being 330 degrees, then the pacific plate would be in the geometry defined by the plane
-    and the north american plate would be out
-    """
-    @assert length(point) == 2 "This function only supports 2D planes"
-    @assert 0 <= strike <= 360 "Strike must be between 0 & 360 degrees"
-    SignedPlane(point, [cos(deg2rad(strike), -sin(deg2rad(strike)))])
+#CHECK THIS NOT FINISHED
+struct Signed2DVerticalPlane <: SignedPlane
+    transformable::Bool
+    point::Array{Float64, 1}
+    normal::Array{Float64, 1}
+    strike::Float64
+    function Signed2DVerticalPlane(point::Array{Float64,1}, strike::Float64)
+        """
+        This normal points 90 to the right of the given strike; ie if this plane were the San Andreas, 
+        and we gave the strike as being 330 degrees, then the pacific plate would be in the geometry defined by the plane
+        and the north american plate would be out
+        """
+        @assert length(point) == 2 "This function only supports 2D planes"
+        @assert 0 <= strike <= 360 "Strike must be between 0 & 360 degrees"
+        new(false, point, [cos(deg2rad(strike), -sin(deg2rad(strike)))], strike)
+    end
 end
 
-function Signed2DDippingPlane(point::Array{Float64,1}, dip::Float64)
-    """
-    Given the restriction on the dip, this function defines a plane such that the hanging wall of a 
-    subvertical fault will be in the geometry defined by the plane, and the footwall will be out
-    """
-    @assert length(point) == 2 "This function only supports 2D planes"
-    @assert 0 <= dip <= 90 "Dip must be between 0 & 90 degrees"
+struct Signed2DDippingPlane <: SignedPlane
+    transformable::Bool
+    point::Array{Float64, 1}
+    normal::Array{Float64, 1}
+    dip::Float64
+    function Signed2DDippingPlane(point::Array{Float64,1}, dip::Float64)
+        """
+        Dip is measured clockwise from the x direction. 
+        Given the restriction on the dip, this function defines a plane such that the hanging wall of a 
+        subvertical fault will be in the geometry defined by the plane, and the footwall will be out.
+        Note that the Z axis is positive downward.
+        """
+        @assert length(point) == 2 "This function only supports 2D planes"
+        @assert 0 <= dip <= 180 "Dip must be between 0 & 180 degrees for the 2D dipping plane"
+        new(false, point, [-sin(deg2rad(dip)), cos(deg2rad(dip))], dip)
+    end
 end
 
 function ingeometry(g::SignedPlane, xv)
     dot(g.normal, xv - g.point) > 0 
 end
 
-function faultslip(fault::SignedPlane, rake::Float64, offset::Float64)
-    if length(fault.normal) == 2
-        rake = rake/abs(rake) #only sign will matter for 2D planes through 2D models (ie lines)
+function faultslipvector(fault::SignedPlane3D, rake::Float64, offset::Float64)
+    #Direction of vector follows Aki-Richards convention for strike/dip/rake
+    @assert -180.0 <= rake <= 180.0 "Rake must be between -180 and 180 degrees"
+end
+
+function faultslipvector(fault::Signed2DVerticalPlane, offset::Float64; sense=:left)
+    if sense == :left
+        return Translation(offset*sin(deg2rad(fault.strike)), offset*cos(deg2rad(fault.strike)))
+    elseif sense == :right
+        return Translation(-offset*sin(deg2rad(fault.strike)), -offset*cos(deg2rad(fault.strike)))
+    else
+        error("Sense of fault must be :left or :right for a strike-slip fault in 2D")
+    end
+end
+
+function faultslipvector(fault::Signed2DDippingPlane, offset::Float64; sense=:normal)
+    if sense == :normal
+        return Translation( offset*cos(deg2rad(fault.dip)), offset*sin(deg2rad(fault.dip)))
+    elseif sense == :reverse
+        return Translation( -offset*cos(deg2rad(fault.dip)), -offset*sin(deg2rad(fault.dip)))
+    else
+        error("Sense of fault must be :normal or :reverse for a dipping fault in 2D")
     end
 end

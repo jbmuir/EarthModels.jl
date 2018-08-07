@@ -44,7 +44,11 @@ end
 
 struct ModelDeformation <: ModelElement
     g::EarthGeometry
-    a::Transformation
-    ai::Transformation
-    ModelDeformation(mask, a) = g.transformable == true ? new(mas, a, inv(a)) : error("Supplied a non-transformable geometry to ModelDeformation")
+    d::Transformation
+    di::Transformation
+    ModelDeformation(g, d) = g.transformable == false ? new(g, d, inv(d)) : error("Supplied a static geometry to ModelDeformation")
+end
+
+function inelement(me::ModelDeformation, xv)
+    ingeometry(me.g, xv)
 end
