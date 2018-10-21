@@ -1,60 +1,64 @@
-struct ModelElement
-    p::EarthPrimitive
-    a::Transformation
-    ai::Transformation
-    pm::PropertyModel
-    ModelElement(p, a, pm) = new(p, a, inv(a), pm)
-end
 
 struct ModelAssembly
-    mel::Array{ModelElement,1}
+    topography::StaticModelElement
+    deformations::Array{ModelDeformation,1}
+    foreground::Array{ModelElement,1}
+    background::BackgroundModelElement
 end
 
+#+(a::ModelAssembly, b::ModelAssembly) = ModelAssembly(b.background, vcat(a.foreground, b.forground))
 
-function inelement(me::ModelElement, xv)
-    xvp = me.ai(xv)
-    inprimitive(me.p, xvp)
-end
-
-function getα(me::ModelElement, xv)
-    getα(me.pm, xv)
-end
-
-function getβ(me::ModelElement, xv)
-    getβ(me.pm, xv)
-end
-
-function getρ(me::ModelElement, xv)
-    getρ(me.pm, xv)
-end
 
 function getα(m::ModelAssembly, xv)
-    for me in m.mel
+    if inelement(m.topography, xv)
+        return getα(m.topography, xv)
+    end
+    for md in m.deformations
+        if inelement(md, xv)
+            xv = md.di(xv)
+        end
+    end
+    for me in m.foreground
         if inelement(me, xv)
             return getα(me, xv)
             break
         end
     end
-    error("getα called for coordinates outside of model")
+    return getα(m.background, xv)
 end
 
 function getβ(m::ModelAssembly, xv)
-    for me in m.mel
+    if inelement(m.topography, xv)
+        return getβ(m.topography, xv)
+    end
+    for md in m.deformations
+        if inelement(md, xv)
+            xv = md.di(xv)
+        end
+    end
+    for me in m.foreground
         if inelement(me, xv)
             return getβ(me, xv)
             break
         end
     end
-    error("getβ called for coordinates outside of model")
+    return getβ(m.background, xv)
 end
 
 function getρ(m::ModelAssembly, xv)
-    for me in m.mel
+    if inelement(m.topography, xv)
+        return getρ(m.topography, xv)
+    end
+    for md in m.deformations
+        if inelement(md, xv)
+            xv = md.di(xv)
+        end
+    end
+    for me in m.foreground
         if inelement(me, xv)
             return getρ(me, xv)
             break
         end
     end
-    error("getρ called for coordinates outside of model")
+    return getρ(m.background, xv)
 end
-
