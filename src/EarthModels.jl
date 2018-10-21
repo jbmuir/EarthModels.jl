@@ -7,6 +7,7 @@ using CoordinateTransformations, Interpolations
 export SuperEllipse2D, SuperEllipsoid3D, Cuboid 
 #Static geometries
 export InterpolatedZeroLevelSet2D, InterpolatedZeroLevelSet3D
+export TrueFalseFunction
 export SignedPlane, Signed2DVerticalPlane, Signed2DDippingPlane, faultslipvector
 
 #relationships - some inbuilt parametrizations of seismic parameters 

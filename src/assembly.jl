@@ -1,5 +1,6 @@
 
 struct ModelAssembly
+    topography::StaticModelElement
     deformations::Array{ModelDeformation,1}
     foreground::Array{ModelElement,1}
     background::BackgroundModelElement
@@ -9,6 +10,9 @@ end
 
 
 function getα(m::ModelAssembly, xv)
+    if inelement(m.topography, xv)
+        return getα(m.topography, xv)
+    end
     for md in m.deformations
         if inelement(md, xv)
             xv = md.di(xv)
@@ -24,6 +28,9 @@ function getα(m::ModelAssembly, xv)
 end
 
 function getβ(m::ModelAssembly, xv)
+    if inelement(m.topography, xv)
+        return getβ(m.topography, xv)
+    end
     for md in m.deformations
         if inelement(md, xv)
             xv = md.di(xv)
@@ -39,6 +46,9 @@ function getβ(m::ModelAssembly, xv)
 end
 
 function getρ(m::ModelAssembly, xv)
+    if inelement(m.topography, xv)
+        return getρ(m.topography, xv)
+    end
     for md in m.deformations
         if inelement(md, xv)
             xv = md.di(xv)

@@ -110,9 +110,12 @@ struct DepthInterpolatedModel <: PropertyModel
     αintrp
     βintrp
     ρintrp
-    DepthInterpolatedModel(zp, αp, βp, ρp) = new(zp, αp, βp, ρp, interpolate((zp,), αp, Gridded(Linear())), 
-                                                                 interpolate((zp,), βp, Gridded(Linear())),
-                                                                 interpolate((zp,), ρp, Gridded(Linear())))
+    # DepthInterpolatedModel(zp, αp, βp, ρp) = new(zp, αp, βp, ρp, interpolate((zp,), αp, Gridded(Linear())), 
+    #                                                              interpolate((zp,), βp, Gridded(Linear())),
+    #                                                              interpolate((zp,), ρp, Gridded(Linear())))
+    DepthInterpolatedModel(zp, αp, βp, ρp) = new(zp, αp, βp, ρp, LinearInterpolation((zp,), αp, extrapolation_bc = Interpolations.Linear()), 
+                                                                 LinearInterpolation((zp,), βp, extrapolation_bc = Interpolations.Linear()),
+                                                                 LinearInterpolation((zp,), ρp, extrapolation_bc = Interpolations.Linear()))
 end
 
 function getα(pm::DepthInterpolatedModel, xv)

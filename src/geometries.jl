@@ -18,6 +18,7 @@ struct SuperEllipse2D <: EarthGeometry2D
 end
 
 struct SuperEllipsoid3D <: EarthGeometry3D
+    transformable::Bool
     r::Float64
     t::Float64
     SuperEllipsoid3D(r, t) = new(true, r, t)
@@ -71,21 +72,43 @@ end
 
 abstract type InterpolatedZeroLevelSet <: EarthGeometry end
 
+
 struct InterpolatedZeroLevelSet2D <: InterpolatedZeroLevelSet
     transformable::Bool
     intrpfun
-    InterpolatedZeroLevelSet2D(xs,zs,f) = new(false, CubicSplineInterpolation((xs, zs), f))
+    InterpolatedZeroLevelSet2D(xs,zs,f) = new(false, LinearInterpolation((xs, zs), f, extrapolation_bc = Interpolations.Linear()))
 end
 
 struct InterpolatedZeroLevelSet3D <: InterpolatedZeroLevelSet
     transformable::Bool
     intrpfun
-    InterpolatedZeroLevelSet3D(xs,ys,zs,f) = new(false, CubicSplineInterpolation((xs, ys, zs), f))
+    InterpolatedZeroLevelSet3D(xs,ys,zs,f) = new(false, LinearInterpolation((xs, ys, zs), f, extrapolation_bc = Interpolations.Linear()))
 end
 
 function ingeometry(g::InterpolatedZeroLevelSet, xv)
-    g.intrpfun[xv...] > 0
+    g.intrpfun(xv...) > 0
 end
+
+
+
+
+
+###############################################################################
+
+#True / False Functions (useful for topography)
+
+###############################################################################
+
+struct TrueFalseFunction <: EarthGeometry 
+    transformable::Bool
+    tffun
+    TrueFalseFunction(tffun) = new(false, tffun)
+end
+
+function ingeometry(g::TrueFalseFunction, xv)
+    g.tffun(xv)
+end
+
 
 ###############################################################################
 
@@ -106,7 +129,8 @@ function SignedPlane3D(point::Array{Float64,1}, strike::Float64, dip::Float64)
     @assert length(point) == 3 "Only supply Strike and Dip to 3D planes"
     @assert 0 <= strike <= 360 "Strike must be between 0 & 360 degrees"
     @assert 0 <= dip <= 90 "Dip must be between 0 & 90 degrees for the 3D plane"
-
+    #Note that Z is down for this case
+    SignedPlane3D(point, [cos(deg2rad(strike))*sin(deg2rad(dip)),-sin(deg2rad(strike))*sin(deg2rad(dip)), -cos(deg2rad(dip))])
 end
 
 #CHECK THIS NOT FINISHED
