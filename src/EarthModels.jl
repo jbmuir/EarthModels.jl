@@ -1,6 +1,9 @@
 module EarthModels
 
 using CoordinateTransformations, Interpolations
+if VERSION > v"0.7"
+    using LinearAlgebra: dot
+end
 
 #primitives - shapes of objects
 #Transformable geometries
