@@ -76,13 +76,13 @@ abstract type InterpolatedZeroLevelSet <: EarthGeometry end
 struct InterpolatedZeroLevelSet2D <: InterpolatedZeroLevelSet
     transformable::Bool
     intrpfun
-    InterpolatedZeroLevelSet2D(xs,zs,f) = new(false, LinearInterpolation((xs, zs), f, extrapolation_bc = Interpolations.Linear()))
+    InterpolatedZeroLevelSet2D(xs,zs,f) = new(false, LinearInterpolation((xs, zs), f, extrapolation_bc = Line()))
 end
 
 struct InterpolatedZeroLevelSet3D <: InterpolatedZeroLevelSet
     transformable::Bool
     intrpfun
-    InterpolatedZeroLevelSet3D(xs,ys,zs,f) = new(false, LinearInterpolation((xs, ys, zs), f, extrapolation_bc = Interpolations.Linear()))
+    InterpolatedZeroLevelSet3D(xs,ys,zs,f) = new(false, LinearInterpolation((xs, ys, zs), f, extrapolation_bc = Line()))
 end
 
 function ingeometry(g::InterpolatedZeroLevelSet, xv)
