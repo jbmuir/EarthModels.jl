@@ -69,16 +69,17 @@ for prop = (:α, :β, :ρ)
     @eval $prop(pm::DepthInterpolatedModel{T}, x::T, y::T, z::T) where T = pm.$pintrp(z)
 end
 
-<<<<<<< Updated upstream
 function getα(pm::BrocherGradientModel, xv)
     z = last(xv)
     pm.α0 + pm.αg*z
 end
 
-function getβ(pm::BrocherGradientModel, xv)
-    z = last(xv)
-    br_β(pm.α0 + pm.αg*z)
-end
+#=
+    A model that uniformly perturbs the velocities/densities of another background model
+    Useful for tomography
+    Doesn't actually ``look up'' model underneath so have to be sure that it is the same one
+    This restriction makes the code a lot easier...
+=#
 
 function getρ(pm::BrocherGradientModel, xv)
     z = last(xv)
@@ -117,15 +118,11 @@ function getρ(pm::DepthInterpolatedModel, xv)
     z = last(xv)
     pm.ρintrp[z]
 end
-=======
->>>>>>> Stashed changes
 
-#=
-    A model that uniformly perturbs the velocities/densities of another background model
-    Useful for tomography
-    Doesn't actually ``look up'' model underneath so have to be sure that it is the same one
-    This restriction makes the code a lot easier...
-=#
+# A model that uniformly perturbs the velocities/densities of another background model
+# Useful for tomography
+# Doesn't actually ``look up'' model underneath so have to be sure that it is the same one
+# This restriction makes the code a lot easier...
 
 struct UniformPerturbationModel <: PropertyModel
     dα::Float64
