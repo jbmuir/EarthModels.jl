@@ -69,11 +69,6 @@ for prop = (:α, :β, :ρ)
     @eval $prop(pm::DepthInterpolatedModel{T}, x::T, y::T, z::T) where T = pm.$pintrp(z)
 end
 
-function getα(pm::BrocherGradientModel, xv)
-    z = last(xv)
-    pm.α0 + pm.αg*z
-end
-
 #=
     A model that uniformly perturbs the velocities/densities of another background model
     Useful for tomography
