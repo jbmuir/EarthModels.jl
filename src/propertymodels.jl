@@ -76,11 +76,6 @@ end
     This restriction makes the code a lot easier...
 =#
 
-function getρ(pm::BrocherGradientModel, xv)
-    z = last(xv)
-    nd_ρ(pm.α0 + pm.αg*z)
-end
-
 # Models parametrized by linear interpolation of fixed values at depth
 
 struct DepthInterpolatedModel <: PropertyModel
