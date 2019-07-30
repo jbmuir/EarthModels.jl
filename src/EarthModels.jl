@@ -16,14 +16,14 @@ export SignedPlane, Signed2DVerticalPlane, Signed2DDippingPlane, faultslipvector
 #relationships - some inbuilt parametrizations of seismic parameters 
 export nd_ρ, br_β, ucvm1d_ρ, ucvm1d_β
 #models - ways to describe the seismic parameters for a primitive
-export UniformModel, DepthGradientModel, BrocherModel, UniformPerturbationModel, DepthInterpolatedModel
+export UniformModel, DepthGradientModel, UniformPerturbationModel, DepthInterpolatedModel
 #reference models (concrete examples using models/primitives/relationships that come up alot)
 export UCVM1D
 #assembly - build up primitives and property models into an assembled final model
 export TransformedModelElement, StaticModelElement, BackgroundModelElement, ModelDeformation
 export ModelAssembly
 export inelement
-export getα, getβ, getρ
+export α, β, ρ
 
 include("relationships.jl")
 include("propertymodels.jl")
