@@ -2,53 +2,53 @@
 
 abstract type ModelElement end
 
-abstract type StructuralModelElement <: ModelElement end
+abstract type StructuralModelElement{T<:PropertyModel} <: ModelElement end
 
-struct TransformedModelElement <: StructuralModelElement
-    g::EarthGeometry
-    a::Transformation
-    ai::Transformation
-    pm::PropertyModel
-    TransformedModelElement(g, a, pm) = g.transformable == true ? new(g, a, inv(a), pm) : error("Supplied a non-transformable geometry to TransformedModelElement")
+struct TransformedModelElement{T, G<:EarthGeometry, TR<:Transformation} <: StructuralModelElement{T}
+    g::G
+    a::TR
+    ai::TR
+    pm::T
 end
 
-struct StaticModelElement <: StructuralModelElement
-    g::EarthGeometry
-    pm::PropertyModel
+TransformedModelElement(g, a, pm) = g.transformable == true ? TransformedModelElement(g, a, inv(a), pm) : error("Supplied a non-transformable geometry to TransformedModelElement")
+
+struct StaticModelElement{T, G<:EarthGeometry} <: StructuralModelElement{T}
+    g::G
+    pm::T
 end
 
-struct BackgroundModelElement <: StructuralModelElement
-    pm::PropertyModel
+DummyStaticElement = StaticModelElement(NoGeometry(),UniformModel(0.0,0.0,0.0))
+
+struct BackgroundModelElement{T} <: StructuralModelElement{T}
+    pm::T
 end
 
-function inelement(me::TransformedModelElement, xv)
+function inelement(me::TransformedModelElement, xv::AbstractVector{T}) where T
     xvt = me.ai(xv)
     ingeometry(me.g, xvt)
 end
 
-function inelement(me::StaticModelElement, xv)
+function inelement(me::StaticModelElement, xv::AbstractVector{T}) where T
     ingeometry(me.g, xv)
 end
 
-function getα(me::StructuralModelElement, xv)
-    getα(me.pm, xv)
+for prop = (:α, :β, :ρ)
+    @eval $prop(me::StructuralModelElement, xv::AbstractVector{T}) where T = $prop(me.pm, xv)
+    @eval $prop(me::StructuralModelElement, x::T, z::T) where T = $prop(me.pm, x, z)
+    @eval $prop(me::StructuralModelElement, x::T, y::T, z::T) where T = $prop(me.pm, x, y, z)
 end
 
-function getβ(me::StructuralModelElement, xv)
-    getβ(me.pm, xv)
+struct ModelDeformation{G<:EarthGeometry, TR<:Transformation} <: ModelElement
+    g::G
+    d::TR
+    di::TR
 end
 
-function getρ(me::StructuralModelElement, xv)
-    getρ(me.pm, xv)
-end
+ModelDeformation(g, d) = g.transformable == true ? ModelDeformation(g, d, inv(d)) : error("Supplied a static geometry to ModelDeformation")
 
-struct ModelDeformation <: ModelElement
-    g::EarthGeometry
-    d::Transformation
-    di::Transformation
-    ModelDeformation(g, d) = g.transformable == false ? new(g, d, inv(d)) : error("Supplied a static geometry to ModelDeformation")
-end
-
-function inelement(me::ModelDeformation, xv)
+function inelement(me::ModelDeformation, xv::AbstractVector{T}) where T
     ingeometry(me.g, xv)
 end
+
+DummyDeformation = ModelDeformation(NoGeometry(), IdentityTransformation(), IdentityTransformation())

@@ -21,4 +21,3 @@ function ucvm1d_β(α, ρ)
 
     α*sqrt((0.5 - ν)/(1.0 - ν))
 end
-
