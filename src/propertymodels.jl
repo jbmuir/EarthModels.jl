@@ -40,6 +40,27 @@ for prop = (:α, :β, :ρ)
     @eval $prop(pm::DepthGradientModel{T}, x::T, y::T, z::T) where T = pm.$p0 + pm.$pg*z
 end
 
+# Depth Power Law Models # 
+
+
+struct DepthPowerLawModel{T} <: PropertyModel{T}
+    z0::T
+    α0::T
+    αn::T
+    β0::T
+    βn::T
+    ρ0::T
+    ρn::T
+end
+
+for prop = (:α, :β, :ρ)
+    p0 = Symbol(prop, :0)
+    pn = Symbol(prop, :n)
+    @eval $prop(pm::DepthGradientModel{T}, xv::AbstractVector{T}) where T = pm.$p0*(last(xv)/pm.z0)^$pn
+    @eval $prop(pm::DepthGradientModel{T}, x::T, z::T) where T = pm.$p0*(z/pm.z0)^$pn
+    @eval $prop(pm::DepthGradientModel{T}, x::T, y::T, z::T) where T = pm.$p0*(z/pm.z0)^$pn
+end
+
 # Depth Interpolated Models # 
 
 struct DepthInterpolatedModel{T, IT} <: PropertyModel{T}
