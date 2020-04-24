@@ -10,6 +10,7 @@ end
 
 for prop = (:α, :β, :ρ)
     @eval $prop(pm::UniformModel{T}, xv::AbstractVector{T}) where T = pm.$prop
+    @eval $prop(pm::UniformModel{T}, z::T) where T = pm.$prop
     @eval $prop(pm::UniformModel{T}, x::T, z::T) where T = pm.$prop
     @eval $prop(pm::UniformModel{T}, x::T, y::T, z::T) where T = pm.$prop
 end
@@ -36,6 +37,7 @@ for prop = (:α, :β, :ρ)
     p0 = Symbol(prop, :0)
     pg = Symbol(prop, :g)
     @eval $prop(pm::DepthGradientModel{T}, xv::AbstractVector{T}) where T = pm.$p0 + pm.$pg*last(xv)
+    @eval $prop(pm::DepthGradientModel{T}, z::T) where T = pm.$p0 + pm.$pg*z
     @eval $prop(pm::DepthGradientModel{T}, x::T, z::T) where T = pm.$p0 + pm.$pg*z
     @eval $prop(pm::DepthGradientModel{T}, x::T, y::T, z::T) where T = pm.$p0 + pm.$pg*z
 end
@@ -56,9 +58,10 @@ end
 for prop = (:α, :β, :ρ)
     p0 = Symbol(prop, :0)
     pn = Symbol(prop, :n)
-    @eval $prop(pm::DepthGradientModel{T}, xv::AbstractVector{T}) where T = pm.$p0*(last(xv)/pm.z0)^$pn
-    @eval $prop(pm::DepthGradientModel{T}, x::T, z::T) where T = pm.$p0*(z/pm.z0)^$pn
-    @eval $prop(pm::DepthGradientModel{T}, x::T, y::T, z::T) where T = pm.$p0*(z/pm.z0)^$pn
+    @eval $prop(pm::DepthPowerLawModel{T}, xv::AbstractVector{T}) where T = pm.$p0*(last(xv)/pm.z0)^$pn
+    @eval $prop(pm::DepthPowerLawModel{T}, z::T) where T = pm.$p0*(z/pm.z0)^pm.$pn
+    @eval $prop(pm::DepthPowerLawModel{T}, x::T, z::T) where T = pm.$p0*(z/pm.z0)^pm.$pn
+    @eval $prop(pm::DepthPowerLawModel{T}, x::T, y::T, z::T) where T = pm.$p0*(z/pm.z0)^pm.$pn
 end
 
 # Depth Interpolated Models # 
@@ -82,6 +85,7 @@ DepthInterpolatedModel(zp, αp, βp, ρp) = DepthInterpolatedModel(zp, αp, βp,
 for prop = (:α, :β, :ρ)
     pintrp = Symbol(prop, :intrp)
     @eval $prop(pm::DepthInterpolatedModel{T}, xv::AbstractVector{T}) where T = pm.$pintrp(last(xv))
+    @eval $prop(pm::DepthInterpolatedModel{T}, z::T) where T = pm.$pintrp(z)
     @eval $prop(pm::DepthInterpolatedModel{T}, x::T, z::T) where T = pm.$pintrp(z)
     @eval $prop(pm::DepthInterpolatedModel{T}, x::T, y::T, z::T) where T = pm.$pintrp(z)
 end
